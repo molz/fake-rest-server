@@ -20,9 +20,18 @@ go build
 ./fake-rest-server -bind=:8080
 ``
 
+##### Usage
+``` 
+Usage of ./fake-rest-server:
+  -bind string
+        http bind port (default ":8080")
+  -data string
+        Filename to load data. Data must be named *.yaml or *.json format, see data.example.yaml
+```
+
 ### Examples
 
-##### Add resource data
+- Add resource data
 
 ``
 curl --request POST \
@@ -31,14 +40,14 @@ curl --request POST \
   --data '{"toto":"tata"}'
 ``
   
-##### Get resource data 
+- Get resource data 
 
 ``
 curl --request GET \
   --url http://localhost:8080/resources/1
 ``
 
-##### delete resource 
+- delete resource 
 
 ``
 curl --request DELETE \
@@ -47,14 +56,21 @@ curl --request DELETE \
 
 ### Docker
 
-##### build image
+- build image
 
 ``
 docker build -t fake-rest-server .
 ``
 
-##### run image
+- run image
 
 ``
 docker run -p 8080:8080 fake-rest-server
+``
+
+- Run image loading data file
+
+
+``
+docker run -p 8081:8080 -v $PWD:/mnt -it -e DATA=/mnt/data.example.yaml fake-rest-server
 ``

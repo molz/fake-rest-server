@@ -7,16 +7,22 @@ import (
 	"time"
 	"io/ioutil"
 	"log"
+	"encoding/json"
+	"gopkg.in/yaml.v2"
+	"fmt"
 )
 
 var (
 	bind          = flag.String("bind", ":8080", "http bind port")
 	keyValueStore = cache.New(24*time.Hour, 1*time.Hour)
+	data          = flag.String("data", "", "Filename to load data. Data must be named *.yaml or *.json format, see data.example.yaml")
 )
 
 func main() {
 	flag.Parse()
-
+	if *data != "" {
+		loadData(*data)
+	}
 	app := iris.New()
 	app.OnAnyErrorCode(handler)
 
@@ -60,7 +66,7 @@ func handlerPostPut(ctx iris.Context) {
 		defer ctx.Request().Body.Close()
 		ctx.StatusCode(iris.StatusOK)
 		ctx.ContentType("application/json")
-		keyValueStore.Set(ctx.Path(), body, 24*time.Hour)
+		keyValueStore.Set(ctx.Path(), body, -1)
 		ctx.Write(body)
 		return
 	}
@@ -88,4 +94,38 @@ func addCorsHeaders(ctx iris.Context) {
 	ctx.Header("Access-Control-Allow-Origin", "*")
 	ctx.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	ctx.Header("Access-Control-Allow-Headers", "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range")
+}
+
+func loadData(filename string) {
+	if len(filename) < 6 {
+		log.Printf("invalid filename")
+		return
+	}
+	content, err := ioutil.ReadFile(filename)
+	if err != nil {
+		log.Printf("fail to read file %s: %s", filename, err.Error())
+		return
+	}
+	var data *DataFile
+	extension := filename[len(filename)-4:]
+	switch extension {
+	case "json":
+		err = json.Unmarshal(content, &data)
+		break
+	case "yaml":
+		err = yaml.Unmarshal(content, &data)
+		break
+	default:
+		err = fmt.Errorf("invalid file extension: %s", extension)
+	}
+	if err != nil {
+		log.Printf("fail to parse %s: %s", filename, err.Error())
+		return
+	}
+	count := 0
+	for key, value := range data.Data {
+		keyValueStore.Set(key, value, -1)
+		count++
+	}
+	log.Printf("%d record has been loaded", count)
 }
