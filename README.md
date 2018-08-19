@@ -44,3 +44,17 @@ curl --request GET \
 curl --request DELETE \
   --url http://localhost:8080/resources/1
 ``
+
+### Docker
+
+##### build image
+
+``
+docker build -t fake-rest-server .
+``
+
+##### run image
+
+``
+docker run -p 8080:8080 fake-rest-server
+``
