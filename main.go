@@ -56,6 +56,7 @@ func handlerGet(ctx iris.Context) {
 func handlerPostPut(ctx iris.Context) {
 	body, err := ioutil.ReadAll(ctx.Request().Body)
 	if err == nil {
+		defer ctx.Request().Body.Close()
 		ctx.StatusCode(iris.StatusOK)
 		ctx.ContentType("application/json")
 		keyValueStore.Set(ctx.Path(), body, 24*time.Hour)
