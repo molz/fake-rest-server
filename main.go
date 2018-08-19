@@ -37,6 +37,7 @@ func handler(ctx iris.Context) {
 		break
 	case iris.MethodOptions:
 		handlerOptions(ctx)
+		break
 	case iris.MethodDelete:
 		handlerDelete(ctx)
 		break
